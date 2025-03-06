@@ -89,14 +89,14 @@ app.get("/api/users/:_id/logs", (req, res) => {
   Exercise.find({ userId: req.params._id })
     .limit(parseInt(req.query.limit))
     .then((logs) => {
-      if (logs.length === 0) {
-        return res.json({ error: "No logs" });
-      }
       if (from) {
         logs = logs.filter((log) => new Date(log.date) >= from);
       }
       if (to) {
         logs = logs.filter((log) => new Date(log.date) <= to);
+      }
+      if (logs.length === 0) {
+        return res.json({ error: "No logs" });
       }
       res.json({
         username: logs[0].username,
