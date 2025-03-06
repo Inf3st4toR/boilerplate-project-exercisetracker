@@ -10,6 +10,9 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/views/index.html");
 });
 
+//Middleware for POST
+app.use(express.urlencoded({ extended: true }));
+
 //Connect to DB
 mongoose
   .connect(process.env.MONGO_URI, {
@@ -35,10 +38,36 @@ app.post("/api/users", (req, res) => {
   const newUser = new User({ username: req.body.username });
   newUser
     .save()
-    .then((savedUser) => {
-      res.json({ username: savedUser.username, _id: savedUser._id });
+    .then((savedUser) => res.json(savedUser))
+    .catch(console.error);
+});
+
+//Create an exercise
+app.post("/api/users/:_id/exercises", (req, res) => {
+  User.findOne({ _id: req.params._id })
+    .then((user) => {
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const newExo = new Exercise({
+        username: user.username,
+        description: req.body.description,
+        duration: req.body.duration,
+        date: req.body.date || new Date().toDateString(),
+      });
+
+      return newExo.save();
     })
-    .catch(console.log(err));
+    .then((savedExo) => res.json(savedExo))
+    .catch(console.error);
+});
+
+//List users
+app.get("/api/users", (req, res) => {
+  User.find({})
+    .then((users) => res.json(users))
+    .catch(console.error);
 });
 
 // END
