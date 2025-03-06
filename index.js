@@ -87,21 +87,26 @@ app.get("/api/users/:_id/logs", (req, res) => {
 
   //Start DB search
   Exercise.find({ userId: req.params._id })
-    .limit(parseInt(req.query.limit))
     .then((logs) => {
+      const totalCount = logs.length;
+      const name = logs[0].username;
+      const userId = logs[0].userId;
+      if (logs.length === 0) {
+        return res.json({ error: "No logs" });
+      }
       if (from) {
         logs = logs.filter((log) => new Date(log.date) >= from);
       }
       if (to) {
         logs = logs.filter((log) => new Date(log.date) <= to);
       }
-      if (logs.length === 0) {
-        return res.json({ error: "No logs" });
+      if (req.query.limit) {
+        logs = logs.slice(0, parseInt(req.query.limit));
       }
       res.json({
-        username: logs[0].username,
-        count: logs.length,
-        _id: logs[0].userId,
+        username: name,
+        count: totalCount,
+        _id: userId,
         log: logs.map((i) => ({
           description: i.description,
           duration: i.duration,
