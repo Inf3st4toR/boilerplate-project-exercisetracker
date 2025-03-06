@@ -70,6 +70,21 @@ app.get("/api/users", (req, res) => {
     .catch(console.error);
 });
 
+//Extract logs
+app.get("/api/users/:_id/logs", (req, res) => {
+  let count;
+});
+
+//Clean DB
+app.get("/api/clean", (req, res) => {
+  User.deleteMany({})
+    .then(() => console.log("All items deleted"))
+    .catch((err) => console.error(err));
+  Exercise.deleteMany({})
+    .then(() => console.log("All items deleted"))
+    .catch((err) => console.error(err));
+});
+
 // END
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
