@@ -81,16 +81,28 @@ app.get("/api/users", (req, res) => {
 
 //Extract logs
 app.get("/api/users/:_id/logs", (req, res) => {
+  //define from & to
+  const from = req.query.from ? new Date(req.query.from) : null;
+  const to = req.query.to ? new Date(req.query.to) : null;
+
+  //Start DB search
   Exercise.find({ userId: req.params._id })
-    .then((log) => {
-      if (log.length === 0) {
+    .limit(parseInt(req.query.limit))
+    .then((logs) => {
+      if (logs.length === 0) {
         return res.json({ error: "No logs" });
       }
+      if (from) {
+        logs = logs.filter((log) => new Date(log.date) >= from);
+      }
+      if (to) {
+        logs = logs.filter((log) => new Date(log.date) <= to);
+      }
       res.json({
-        username: log[0].username,
-        count: log.length,
-        _id: log[0].userId,
-        log: log.map((i) => ({
+        username: logs[0].username,
+        count: logs.length,
+        _id: logs[0].userId,
+        log: logs.map((i) => ({
           description: i.description,
           duration: i.duration,
           date: i.date,
