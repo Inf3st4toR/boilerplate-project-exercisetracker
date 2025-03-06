@@ -27,6 +27,7 @@ const User = mongoose.model("User", userSchema);
 
 const exerciseSchema = new mongoose.Schema({
   username: String,
+  userId: String,
   description: String,
   duration: Number,
   date: String,
@@ -52,14 +53,22 @@ app.post("/api/users/:_id/exercises", (req, res) => {
 
       const newExo = new Exercise({
         username: user.username,
+        userId: user._id,
         description: req.body.description,
-        duration: req.body.duration,
+        duration: parseInt(req.body.duration),
         date: req.body.date || new Date().toDateString(),
       });
 
-      return newExo.save();
+      return newExo.save().then((savedExo) => {
+        res.json({
+          username: savedExo.username,
+          description: savedExo.description,
+          duration: savedExo.duration,
+          date: savedExo.date,
+          _id: user._id,
+        });
+      });
     })
-    .then((savedExo) => res.json(savedExo))
     .catch(console.error);
 });
 
@@ -72,7 +81,23 @@ app.get("/api/users", (req, res) => {
 
 //Extract logs
 app.get("/api/users/:_id/logs", (req, res) => {
-  let count;
+  Exercise.find({ userId: req.params._id })
+    .then((log) => {
+      if (log.length === 0) {
+        return res.json({ error: "No logs" });
+      }
+      res.json({
+        username: log[0].username,
+        count: log.length,
+        _id: log[0].userId,
+        log: log.map((i) => ({
+          description: i.description,
+          duration: i.duration,
+          date: i.date,
+        })),
+      });
+    })
+    .catch(console.error);
 });
 
 //Clean DB
